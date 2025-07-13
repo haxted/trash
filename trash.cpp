@@ -10,11 +10,13 @@ public:
   Cpu initcpup = {0};
   Cpu* cpu = &initcpup;
   uint8_t mem[320];
-
+  bool loggingOn;
   void exec() {
+    if(loggingOn) {
     printf("IP: 0x%04x  OP: 0x%02x\n", this->cpu->ip, this->mem[this->cpu->ip]);
     for(int i = 0; i < 16; i++) {
       printf("R%d: 0x%02x \n", i, this->cpu->regs[i]);
+    }
     }
     switch (this->mem[this->cpu->ip]) {
     case 0xEA: {
@@ -55,6 +57,17 @@ public:
       this->cpu->ip += 2;
       break;
     }
+    case 0x60: {
+      uint8_t op = this->mem[this->cpu->ip+1];
+      this->cpu->ip+=3;
+      break;
+    }
+    case 0x61: {
+      char c = (char)this->mem[this->cpu->ip+1];
+      printf("%c", c);
+      this->cpu->ip += 2;
+      break;
+    }
     default: {
       printf("Invalid opcode 0x%2x \nHalting.\n", this->mem[this->cpu->ip]);
       std::exit(-1);
@@ -65,23 +78,26 @@ public:
 
 int main(int argc, char **argv) {
   Processor *processor = new Processor();
+  if(strcmp(argv[1], "--logging-off")) {
+    processor->loggingOn = false;
+  }
   printf("H1825 Emulator, %lu bytes of memory.\n", sizeof(processor->mem));
   uint8_t program[320] = {
-    0x00, 0x10,
-    0x10, 0x05,
-    0x00, 0x45,
-    0x10, 0x01,
-    0xea, 0xea,
-    0xea, 0xea,
-    0x00, 0x7f,
-    0x10, 0x10,
-    0x00, 0x10,
-    0x10, 0x05,
-    0xea, 0xea,
-    0xea, 0xea,
-     0x00,
-    69, 0x30,
-    69, 0x99, 0xef
+    0x61, 'H',
+    0x61, 'e',
+    0x61, 'l',
+    0x61, 'l',
+    0x61, 'o',
+    0x61, ',',
+    0x61, ' ',
+    0x61, 'W',
+    0x61, 'o',
+    0x61, 'r',
+    0x61, 'l',
+    0x61, 'd',
+    0x61, '!',
+    0x61, '\n',
+    0xEF
   };
   std::memcpy(processor->mem, program, sizeof(program));
 //  while(processor->cpu->ip < sizeof(processor->mem)) processor->exec();
